@@ -1,0 +1,41 @@
+# Cloudflare Pages
+
+SentiQ is deployed as a static Next.js export on Cloudflare Pages.
+
+## Build Settings
+
+- Build command: `pnpm build`
+- Output directory: `out`
+- Node version: `20`
+
+## Environment Variables
+
+Configure these public frontend variables in Cloudflare Pages:
+
+```bash
+NEXT_PUBLIC_APP_URL=
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
+
+Do not configure `SUPABASE_SERVICE_ROLE_KEY` or any other server-side secret in
+the frontend deployment.
+
+## Static Routing
+
+The app keeps `/s` and `/d` as static pages that read the token from the query
+string:
+
+- `/s?token=test-token`
+- `/d?token=test-token`
+
+Cloudflare Pages uses `public/_redirects` to rewrite clean token URLs without
+requiring dynamic Next.js routes:
+
+```text
+/s/:token /s/?token=:token 200
+/d/:token /d/?token=:token 200
+```
+
+Security headers are defined in `public/_headers`. The deployment intentionally
+does not add a strict CSP yet.
