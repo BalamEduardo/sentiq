@@ -48,8 +48,8 @@ pnpm build
 - `/` public landing placeholder
 - `/privacidad` privacy placeholder
 - `/login` auth placeholder
-- `/s/:token` branch QR survey placeholder
-- `/d/:token` device survey placeholder
+- `/s?token=:token` branch QR survey placeholder
+- `/d?token=:token` device survey placeholder
 - `/gracias` survey completion placeholder
 - `/enlace-invalido` invalid survey link placeholder
 - `/app` restaurant admin and manager placeholder
@@ -60,10 +60,9 @@ pnpm build
 `next.config.ts` is configured with `output: "export"`, `trailingSlash: true`,
 and `images.unoptimized: true` for Cloudflare Pages compatibility.
 
-Dynamic token routes are placeholders in this phase. Because static export
-cannot pre-render unknown token values, the current build only emits a
-`placeholder` token page for each capture mode. Token resolution and hosting
-rewrite behavior should be finalized before implementing capture flows.
+Cloudflare Pages rewrites are defined in `public/_redirects` so `/s/:token`
+maps to `/s/?token=:token` and `/d/:token` maps to `/d/?token=:token` without
+requiring dynamic Next.js routes.
 
 ## Environment Variables
 

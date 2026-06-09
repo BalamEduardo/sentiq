@@ -1,0 +1,2 @@
+/s/:token /s/?token=:token 200
+/d/:token /d/?token=:token 200
