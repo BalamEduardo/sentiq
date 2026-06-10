@@ -11,6 +11,12 @@ const publicEnvKeys = [
   "NEXT_PUBLIC_APP_URL",
 ] satisfies PublicEnvKey[];
 
+const publicEnvValues = {
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+} satisfies Record<PublicEnvKey, string | undefined>;
+
 export class PublicEnvError extends Error {
   constructor(message: string) {
     super(message);
@@ -19,7 +25,7 @@ export class PublicEnvError extends Error {
 }
 
 function readPublicEnvValue(key: PublicEnvKey): string {
-  const value = process.env[key]?.trim();
+  const value = publicEnvValues[key]?.trim();
 
   if (!value) {
     throw new PublicEnvError(`Missing required public environment variable: ${key}`);
