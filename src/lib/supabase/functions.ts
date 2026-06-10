@@ -1,4 +1,5 @@
 import { getSupabaseBrowserClient } from "./client";
+import type { EdgeFunctionName } from "@/config/edge-functions";
 
 type FunctionBody =
   | string
@@ -20,7 +21,7 @@ export class SupabaseFunctionError extends Error {
 }
 
 export async function invokeFunction<TInput extends FunctionBody, TOutput>(
-  functionName: string,
+  functionName: EdgeFunctionName,
   input: TInput,
 ): Promise<TOutput> {
   const { data, error } = await getSupabaseBrowserClient().functions.invoke<TOutput>(
