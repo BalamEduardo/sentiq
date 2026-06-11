@@ -4,33 +4,27 @@ import { MonitorSmartphone, QrCode } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-type SourceValue = "qr" | "device";
+type SourceValue = "all" | "qr" | "device";
 
 type SourceFilterProps = {
-  value?: SourceValue[];
-  onChange?: (value: SourceValue[]) => void;
+  value?: SourceValue;
+  onChange?: (value: SourceValue) => void;
   className?: string;
 };
 
 const sourceOptions = [
+  { label: "Todos", value: "all" as const, icon: MonitorSmartphone },
   { label: "QR", value: "qr" as const, icon: QrCode },
   { label: "Dispositivo", value: "device" as const, icon: MonitorSmartphone },
 ];
 
-export function SourceFilter({ value = [], onChange, className }: SourceFilterProps) {
-  function toggle(source: SourceValue) {
-    const next = value.includes(source)
-      ? value.filter((item) => item !== source)
-      : [...value, source];
-    onChange?.(next);
-  }
-
+export function SourceFilter({ value = "all", onChange, className }: SourceFilterProps) {
   return (
     <fieldset className={cn("space-y-2", className)}>
       <legend className="text-sm font-medium text-slate-700">Origen</legend>
       <div className="flex flex-wrap gap-2">
         {sourceOptions.map(({ label, value: optionValue, icon: Icon }) => {
-          const selected = value.includes(optionValue);
+          const selected = value === optionValue;
 
           return (
             <button
@@ -43,7 +37,7 @@ export function SourceFilter({ value = [], onChange, className }: SourceFilterPr
                   ? "border-teal-700 bg-teal-50 text-teal-800"
                   : "border-slate-300 bg-white text-slate-700 hover:border-teal-600"
               )}
-              onClick={() => toggle(optionValue)}
+              onClick={() => onChange?.(optionValue)}
             >
               <Icon className="size-4" aria-hidden="true" />
               {label}

@@ -1,3 +1,5 @@
+"use client";
+
 import { Check, QrCode, RotateCcw, Smartphone } from "lucide-react";
 import type { ReactNode } from "react";
 

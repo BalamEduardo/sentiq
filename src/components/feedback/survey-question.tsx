@@ -13,6 +13,7 @@ type SurveyQuestionProps = {
   required?: boolean;
   value?: number;
   onChange?: (value: number) => void;
+  error?: string;
   children?: ReactNode;
   className?: string;
 };
@@ -24,6 +25,7 @@ export function SurveyQuestion({
   required,
   value,
   onChange,
+  error,
   children,
   className,
 }: SurveyQuestionProps) {
@@ -31,8 +33,10 @@ export function SurveyQuestion({
     <section
       className={cn(
         "rounded-xl border border-slate-200 bg-white p-4 shadow-sm",
+        error && "border-red-200 ring-1 ring-red-100",
         className
       )}
+      data-invalid={error ? "" : undefined}
     >
       <div className="mb-5 flex items-start gap-3">
         {number !== undefined && (
@@ -48,7 +52,10 @@ export function SurveyQuestion({
           {description && <p className="text-sm leading-5 text-slate-600">{description}</p>}
         </div>
       </div>
-      {children ?? <RatingScale value={value} onChange={onChange} />}
+      {children ?? <RatingScale value={value} onChange={onChange} error={error} />}
+      {children && error && (
+        <p className="mt-3 text-sm font-medium text-red-600">{error}</p>
+      )}
     </section>
   );
 }

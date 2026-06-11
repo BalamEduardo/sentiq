@@ -1,6 +1,6 @@
 "use client";
 
-import type { ButtonHTMLAttributes } from "react";
+import { useId, type ButtonHTMLAttributes } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,7 @@ type RatingScaleProps = {
   minLabel?: string;
   maxLabel?: string;
   disabled?: boolean;
+  error?: string;
   className?: string;
   name?: string;
   "aria-label"?: string;
@@ -21,12 +22,21 @@ export function RatingScale({
   minLabel = "Muy malo",
   maxLabel = "Excelente",
   disabled,
+  error,
   className,
   name,
   "aria-label": ariaLabel = "Selecciona una calificacion",
 }: RatingScaleProps) {
+  const generatedId = useId();
+  const errorId = `${name ?? generatedId}-error`;
+
   return (
-    <fieldset className={cn("space-y-3", className)} disabled={disabled}>
+    <fieldset
+      className={cn("space-y-3", className)}
+      disabled={disabled}
+      aria-invalid={Boolean(error)}
+      aria-describedby={error ? errorId : undefined}
+    >
       <legend className="sr-only">{ariaLabel}</legend>
       <div className="flex items-center justify-between gap-2">
         {[1, 2, 3, 4, 5].map((rating) => (
@@ -35,6 +45,7 @@ export function RatingScale({
             name={name}
             rating={rating}
             selected={value === rating}
+            invalid={Boolean(error)}
             disabled={disabled}
             onClick={() => onChange?.(rating)}
           />
@@ -44,6 +55,11 @@ export function RatingScale({
         <span>{minLabel}</span>
         <span>{maxLabel}</span>
       </div>
+      {error && (
+        <p id={errorId} className="text-sm font-medium text-red-600">
+          {error}
+        </p>
+      )}
     </fieldset>
   );
 }
@@ -51,12 +67,14 @@ export function RatingScale({
 type RatingButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   rating: number;
   selected: boolean;
+  invalid: boolean;
   name?: string;
 };
 
 function RatingButton({
   rating,
   selected,
+  invalid,
   name,
   className,
   ...props
@@ -71,6 +89,7 @@ function RatingButton({
         selected
           ? "border-teal-700 bg-teal-700 text-white shadow-sm"
           : "border-slate-300 bg-white text-slate-700 hover:border-teal-600 hover:text-teal-700",
+        invalid && !selected && "border-red-300 text-red-700 hover:border-red-400",
         className
       )}
       {...props}
