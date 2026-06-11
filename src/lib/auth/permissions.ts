@@ -1,8 +1,11 @@
 import { ROUTES } from "@/config/routes";
 import type { UserRole } from "@/types/domain";
 
-const managerRoutes = [
+const managerExactRoutes = [
   ROUTES.APP,
+] as const;
+
+const managerSubrouteRoots = [
   ROUTES.APP_DASHBOARD,
   ROUTES.APP_RESPONSES,
   ROUTES.APP_RESPONSE_DETAIL,
@@ -31,6 +34,10 @@ export function normalizePathname(pathname: string): string {
 
 export function isValidUserRole(role: string | null | undefined): role is UserRole {
   return validRoles.includes(role as UserRole);
+}
+
+export function isExactRoute(pathname: string, route: string): boolean {
+  return normalizePathname(pathname) === route;
 }
 
 export function isRouteOrSubroute(pathname: string, route: string): boolean {
@@ -65,8 +72,13 @@ export function canAccessRoute(
     }
 
     if (role === "manager") {
-      return managerRoutes.some((route) =>
-        isRouteOrSubroute(normalizedPathname, route),
+      return (
+        managerExactRoutes.some((route) =>
+          isExactRoute(normalizedPathname, route),
+        ) ||
+        managerSubrouteRoots.some((route) =>
+          isRouteOrSubroute(normalizedPathname, route),
+        )
       );
     }
   }
