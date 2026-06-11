@@ -21,6 +21,8 @@ import type { PublicSurveyConfig, RatingValue } from "@/types/domain";
 
 const INVALID_LINK_MESSAGE = "Este enlace no está disponible. Solicita apoyo al restaurante.";
 const COMMENT_MAX_LENGTH = 500;
+const PHONE_MIN_DIGITS = 8;
+const PHONE_MAX_DIGITS = 15;
 
 type PublicQrSurveyProps = {
   token: string | null;
@@ -162,7 +164,13 @@ export function PublicQrSurvey({ token }: PublicQrSurveyProps) {
       nextErrors.comment = "El comentario debe tener máximo 500 caracteres.";
     }
 
-    if (form.customer_phone.trim() && !form.consent_to_contact) {
+    const normalizedPhone = normalizePhoneDigits(form.customer_phone);
+
+    if (normalizedPhone && !isReasonablePhoneNumber(normalizedPhone)) {
+      nextErrors.customer_phone = "Ingresa un telefono valido de 8 a 15 digitos.";
+    }
+
+    if (normalizedPhone && !form.consent_to_contact) {
       nextErrors.consent_to_contact = "Autoriza el contacto para poder dejar tu teléfono.";
     }
 
@@ -190,8 +198,10 @@ export function PublicQrSurvey({ token }: PublicQrSurveyProps) {
         food_quality: form.food_quality!,
         service_speed: form.service_speed!,
         comment: form.comment.trim() || null,
-        customer_phone: form.customer_phone.trim() || null,
-        consent_to_contact: form.customer_phone.trim() ? form.consent_to_contact : false,
+        customer_phone: normalizePhoneDigits(form.customer_phone) || null,
+        consent_to_contact: normalizePhoneDigits(form.customer_phone)
+          ? form.consent_to_contact
+          : false,
       });
       setSubmitted(true);
     } catch (error) {
@@ -371,4 +381,12 @@ function RestaurantLogo({
 
 function isRatingValue(value: unknown): value is RatingValue {
   return typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 5;
+}
+
+function normalizePhoneDigits(value: string): string {
+  return value.replace(/\D/g, "");
+}
+
+function isReasonablePhoneNumber(phoneDigits: string): boolean {
+  return phoneDigits.length >= PHONE_MIN_DIGITS && phoneDigits.length <= PHONE_MAX_DIGITS;
 }
