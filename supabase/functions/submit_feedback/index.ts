@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createServiceClient } from "../_shared/supabase-admin.ts";
 import { errorResponse, handleOptions, jsonResponse, readJsonBody } from "../_shared/http.ts";
+import { applyPublicRateLimit } from "../_shared/rate-limit.ts";
 import { getSurveyLinkContext } from "../_shared/survey-link.ts";
 
 type RequestPayload = {
@@ -15,8 +16,6 @@ type RequestPayload = {
   consent_to_contact?: unknown;
 };
 
-const QR_LIMIT_PER_MINUTE = 5;
-const DEVICE_LIMIT_PER_MINUTE = 10;
 const COMMENT_MAX_LENGTH = 1000;
 const PHONE_MAX_LENGTH = 30;
 
@@ -49,7 +48,7 @@ Deno.serve(async (req: Request) => {
       return errorResponse("invalid_payload", 400, "source_mismatch");
     }
 
-    const rateLimitResult = await applyRateLimit({
+    const rateLimitResult = await applyPublicRateLimit({
       supabase,
       req,
       surveyLinkId: context.id,
@@ -57,7 +56,7 @@ Deno.serve(async (req: Request) => {
     });
 
     if (!rateLimitResult.ok) {
-      return errorResponse("rate_limited", 429);
+      return errorResponse(rateLimitResult.reason === "limited" ? "rate_limited" : "server_error", rateLimitResult.reason === "limited" ? 429 : 500);
     }
 
     const hasAlert = validation.value.general_experience <= 3;
@@ -187,61 +186,4 @@ function validatePayload(body: RequestPayload | null):
 
 function normalizeRating(value: unknown): number | null {
   return Number.isInteger(value) && typeof value === "number" && value >= 1 && value <= 5 ? value : null;
-}
-
-async function applyRateLimit(input: {
-  supabase: ReturnType<typeof createServiceClient>;
-  req: Request;
-  surveyLinkId: string;
-  source: "qr" | "device";
-}): Promise<{ ok: true } | { ok: false }> {
-  const now = new Date();
-  const windowStart = new Date(now);
-  windowStart.setSeconds(0, 0);
-  const expiresAt = new Date(windowStart.getTime() + 10 * 60 * 1000);
-
-  const scopeKey = await buildScopeKey(input.req, input.surveyLinkId, input.source);
-
-  const { data: existingCounter } = await input.supabase
-    .from("rate_limit_counters")
-    .select("id,request_count")
-    .eq("scope_key", scopeKey)
-    .eq("window_start", windowStart.toISOString())
-    .maybeSingle();
-
-  const limit = input.source === "qr" ? QR_LIMIT_PER_MINUTE : DEVICE_LIMIT_PER_MINUTE;
-
-  if (existingCounter) {
-    if (existingCounter.request_count >= limit) {
-      return { ok: false };
-    }
-
-    await input.supabase
-      .from("rate_limit_counters")
-      .update({ request_count: existingCounter.request_count + 1, updated_at: now.toISOString() })
-      .eq("id", existingCounter.id);
-
-    return { ok: true };
-  }
-
-  await input.supabase.from("rate_limit_counters").insert({
-    scope_key: scopeKey,
-    survey_link_id: input.surveyLinkId,
-    source: input.source,
-    window_start: windowStart.toISOString(),
-    request_count: 1,
-    expires_at: expiresAt.toISOString(),
-  });
-
-  return { ok: true };
-}
-
-async function buildScopeKey(req: Request, surveyLinkId: string, source: "qr" | "device"): Promise<string> {
-  const forwardedFor = req.headers.get("x-forwarded-for") ?? "unknown";
-  const clientIp = forwardedFor.split(",")[0]?.trim() || "unknown";
-  const salt = Deno.env.get("RATE_LIMIT_SECRET_SALT") ?? "development-rate-limit-salt";
-  const rawScope = source === "qr" ? `qr:${surveyLinkId}:${clientIp}:${salt}` : `device:${surveyLinkId}:${salt}`;
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(rawScope));
-
-  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
