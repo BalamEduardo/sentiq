@@ -17,6 +17,7 @@ Validacion Supabase realizada contra proyecto `sentiq` (`wdurjrzkfjnlaatenwnb`):
 - `authenticated` sin perfil con `select count(*) from public.rate_limit_counters` observo `0` filas.
 - La matriz multi-restaurante se ejecuto con fixtures dentro de una transaccion remota y `ROLLBACK` mediante `.codex-local/rls-matrix-runner.sql`.
 - Verificacion posterior: `select count(*) from public.restaurants where slug in ('rls-restaurant-a','rls-restaurant-b')` devolvio `0`, confirmando que los fixtures no persistieron.
+- Los casos `Anon no inserta feedback directo` y `No delete directo` no fueron parte de los 13 casos ejecutados en el runner; quedan documentados como pendientes de ejecucion manual.
 
 Leyenda de celdas:
 
@@ -216,11 +217,11 @@ Completar al ejecutar `docs/security/rls-test-queries.sql` en Supabase local.
 | Platform admin no ve respuestas | platform_admin | `select id from feedback_responses;` | 0 filas | 0 | OK |
 | Platform admin no ve alertas | platform_admin | `select id from feedback_alerts;` | 0 filas | 0 | OK |
 | Anon no lee tablas internas | anon | `select count(*) from restaurants;` | 0 filas visibles | 0 | OK en Supabase remoto |
-| Anon no inserta feedback directo | anon | `insert into feedback_responses (...) values (...);` | Falla por RLS | Pendiente | Pendiente |
+| Anon no inserta feedback directo | anon | `insert into feedback_responses (...) values (...);` | Falla por RLS | Pendiente; no fue parte de los 13 casos del runner | Pendiente de ejecucion manual |
 | Auth sin perfil no ve restaurantes | authenticated sin perfil | `select count(*) from restaurants;` | 0 filas visibles | 0 | OK en Supabase remoto |
 | Rate limit no accesible desde frontend | authenticated sin perfil | `select count(*) from rate_limit_counters;` | 0 filas visibles | 0 | OK en Supabase remoto |
 | Telefono solo por alcance | manager A1 | `select customer_phone from feedback_responses;` | Solo telefono branch A1 | `1:5551110001` | OK |
-| No delete directo | restaurant_admin A | `delete from branches where restaurant_id = :restaurant_a;` | Falla por RLS | Pendiente | Pendiente |
+| No delete directo | restaurant_admin A | `delete from branches where restaurant_id = :restaurant_a;` | Falla por RLS | Pendiente; no fue parte de los 13 casos del runner | Pendiente de ejecucion manual |
 
 ## Condicion antes de construir dashboard/respuestas/alertas/configuracion
 
