@@ -1,6 +1,17 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.48.1";
 import { hashPublicToken, normalizePublicToken } from "./public-token.ts";
 
+export type SurveySettings = {
+  logo_url: string | null;
+  primary_color: string | null;
+  survey_welcome_text: string | null;
+  question_general_text: string | null;
+  question_attention_text: string | null;
+  question_food_text: string | null;
+  question_speed_text: string | null;
+  contact_consent_text: string | null;
+};
+
 export type SurveyLinkContext = {
   id: string;
   restaurant_id: string;
@@ -10,32 +21,11 @@ export type SurveyLinkContext = {
   type: "qr" | "device";
   status: string;
   token_hash: string;
-  restaurant: {
-    name: string;
-    status: string;
-  };
-  branch: {
-    name: string;
-    status: string;
-  };
-  zone: {
-    name: string;
-    status: string;
-  } | null;
-  device: {
-    name: string;
-    status: string;
-  } | null;
-  settings: {
-    logo_url: string | null;
-    primary_color: string | null;
-    survey_welcome_text: string | null;
-    question_general_text: string | null;
-    question_attention_text: string | null;
-    question_food_text: string | null;
-    question_speed_text: string | null;
-    contact_consent_text: string | null;
-  } | null;
+  restaurant: { name: string; status: string };
+  branch: { name: string; status: string };
+  zone: { name: string; status: string } | null;
+  device: { name: string; status: string } | null;
+  settings: SurveySettings | null;
 };
 
 export type SurveyLinkLookupResult =
@@ -61,17 +51,7 @@ export async function getSurveyLinkContext(supabase: SupabaseClient, rawToken: s
       restaurant:restaurants!survey_links_restaurant_id_fkey(name,status),
       branch:branches!survey_links_branch_id_fkey(name,status),
       zone:zones!survey_links_zone_id_fkey(name,status),
-      device:devices!survey_links_device_id_fkey(name,status),
-      settings:restaurant_settings!restaurant_settings_restaurant_id_fkey(
-        logo_url,
-        primary_color,
-        survey_welcome_text,
-        question_general_text,
-        question_attention_text,
-        question_food_text,
-        question_speed_text,
-        contact_consent_text
-      )
+      device:devices!survey_links_device_id_fkey(name,status)
     `,
     )
     .eq("token_hash", tokenHash)
@@ -81,7 +61,20 @@ export async function getSurveyLinkContext(supabase: SupabaseClient, rawToken: s
     return { ok: false, code: "invalid_token" };
   }
 
-  const context = data as unknown as SurveyLinkContext;
+  const link = data as unknown as Omit<SurveyLinkContext, "settings">;
+
+  const { data: settings } = await supabase
+    .from("restaurant_settings")
+    .select(
+      "logo_url,primary_color,survey_welcome_text,question_general_text,question_attention_text,question_food_text,question_speed_text,contact_consent_text",
+    )
+    .eq("restaurant_id", link.restaurant_id)
+    .maybeSingle();
+
+  const context: SurveyLinkContext = {
+    ...link,
+    settings: (settings ?? null) as SurveySettings | null,
+  };
 
   if (context.status !== "active") {
     return { ok: false, code: "inactive_link" };
