@@ -26,7 +26,7 @@ export function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-export function errorResponse(code: PublicErrorCode, status: number, message = code): Response {
+export function errorResponse(code: PublicErrorCode, status: number, message: string = code): Response {
   return jsonResponse({ ok: false, error: { code, message } }, status);
 }
 
