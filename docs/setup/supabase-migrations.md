@@ -76,6 +76,10 @@ They are `security definer` functions with a fixed `search_path` so future RLS
 policies can call them consistently. Execute permission is granted to
 `authenticated`; no `service_role` behavior is exposed or required.
 
+`supabase/migrations/0003_lock_down_role_helper_grants.sql` explicitly revokes
+direct RPC execution of those helpers from `anon` and `service_role`, while
+keeping execution available to `authenticated` for future RLS policies.
+
 T-007 intentionally does not enable RLS and does not create policies. T-008 is
 responsible for enabling RLS table by table and wiring policies to these
 helpers.
