@@ -27,6 +27,7 @@ DEMO_PLATFORM_ADMIN_PASSWORD="change-this-dev-password"
 ```
 
 Use dummy development emails only. The script rejects emails that do not look like demo/dev addresses.
+Replace every `change-this-dev-password` placeholder before running the seed. The script rejects placeholder passwords and passwords shorter than 12 characters. When `CI=true`, the script prints demo emails and URLs but does not print passwords.
 
 ## Run
 

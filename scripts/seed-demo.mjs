@@ -6,6 +6,8 @@ import { createClient } from "@supabase/supabase-js";
 const DEMO_SLUG = "sentiq-demo";
 const DEMO_MARKER = "cor-75-demo";
 const TOKEN_BYTE_LENGTH = 32;
+const PASSWORD_PLACEHOLDER = "change-this-dev-password";
+const PASSWORD_MIN_LENGTH = 12;
 
 const REQUIRED_ENV = [
   "SUPABASE_URL",
@@ -34,9 +36,15 @@ async function main() {
 
   validateDemoEmail(env.DEMO_RESTAURANT_ADMIN_EMAIL, "DEMO_RESTAURANT_ADMIN_EMAIL");
   validateDemoEmail(env.DEMO_MANAGER_EMAIL, "DEMO_MANAGER_EMAIL");
+  validateDemoPassword(env.DEMO_RESTAURANT_ADMIN_PASSWORD, "DEMO_RESTAURANT_ADMIN_PASSWORD");
+  validateDemoPassword(env.DEMO_MANAGER_PASSWORD, "DEMO_MANAGER_PASSWORD");
 
   if (env.DEMO_PLATFORM_ADMIN_EMAIL) {
     validateDemoEmail(env.DEMO_PLATFORM_ADMIN_EMAIL, "DEMO_PLATFORM_ADMIN_EMAIL");
+    if (!env.DEMO_PLATFORM_ADMIN_PASSWORD) {
+      throw new Error("DEMO_PLATFORM_ADMIN_PASSWORD is required when DEMO_PLATFORM_ADMIN_EMAIL is set.");
+    }
+    validateDemoPassword(env.DEMO_PLATFORM_ADMIN_PASSWORD, "DEMO_PLATFORM_ADMIN_PASSWORD");
   }
 
   const adminUser = await ensureAuthUser({
@@ -80,7 +88,7 @@ async function main() {
   });
 
   const zoneSalon = await ensureZone(restaurant.id, branchCentro.id, "Salon principal");
-  const zoneTerraza = await ensureZone(restaurant.id, branchCentro.id, "Terraza");
+  await ensureZone(restaurant.id, branchCentro.id, "Terraza");
   await ensureZone(restaurant.id, branchNorte.id, "Comedor norte");
 
   await ensureProfile({
@@ -178,7 +186,7 @@ async function main() {
     key: "negative-qr-pending",
     restaurantId: restaurant.id,
     branchId: branchCentro.id,
-    zoneId: zoneTerraza.id,
+    zoneId: null,
     deviceId: null,
     surveyLinkId: qrLink.id,
     waiterId: null,
@@ -232,10 +240,10 @@ async function main() {
   console.log("Demo data ready.");
   console.log("");
   console.log("Demo credentials");
-  console.log(`- Restaurant admin: ${env.DEMO_RESTAURANT_ADMIN_EMAIL} / ${env.DEMO_RESTAURANT_ADMIN_PASSWORD}`);
-  console.log(`- Manager: ${env.DEMO_MANAGER_EMAIL} / ${env.DEMO_MANAGER_PASSWORD}`);
+  printCredential("Restaurant admin", env.DEMO_RESTAURANT_ADMIN_EMAIL, env.DEMO_RESTAURANT_ADMIN_PASSWORD);
+  printCredential("Manager", env.DEMO_MANAGER_EMAIL, env.DEMO_MANAGER_PASSWORD);
   if (platformUser) {
-    console.log(`- Platform admin: ${env.DEMO_PLATFORM_ADMIN_EMAIL} / ${env.DEMO_PLATFORM_ADMIN_PASSWORD}`);
+    printCredential("Platform admin", env.DEMO_PLATFORM_ADMIN_EMAIL, env.DEMO_PLATFORM_ADMIN_PASSWORD);
   }
   console.log("");
   console.log("Public capture URLs");
@@ -286,6 +294,25 @@ function validateDemoEmail(email, envName) {
   if (!hasDemoMarker) {
     throw new Error(`${envName} must look like a demo/dev address. Include demo, test, dev, or sentiq in the email.`);
   }
+}
+
+function validateDemoPassword(password, envName) {
+  if (password === PASSWORD_PLACEHOLDER) {
+    throw new Error(`${envName} must be changed from the placeholder value before running the seed.`);
+  }
+
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    throw new Error(`${envName} must be at least ${PASSWORD_MIN_LENGTH} characters long.`);
+  }
+}
+
+function printCredential(label, email, password) {
+  if (process.env.CI === "true") {
+    console.log(`- ${label}: ${email}`);
+    return;
+  }
+
+  console.log(`- ${label}: ${email} / ${password}`);
 }
 
 async function ensureAuthUser({ email, password, fullName }) {
