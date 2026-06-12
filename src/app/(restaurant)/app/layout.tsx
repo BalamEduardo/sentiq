@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { AppRouteGuard } from "@/components/auth";
+import { AppShell } from "@/components/layout/app-shell";
 
 type RestaurantAppLayoutProps = {
   children: ReactNode;
@@ -9,5 +9,5 @@ type RestaurantAppLayoutProps = {
 export default function RestaurantAppLayout({
   children,
 }: RestaurantAppLayoutProps) {
-  return <AppRouteGuard>{children}</AppRouteGuard>;
+  return <AppShell>{children}</AppShell>;
 }
