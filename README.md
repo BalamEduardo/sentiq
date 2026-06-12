@@ -48,10 +48,10 @@ pnpm build
 - `/` public landing placeholder
 - `/privacidad` privacy placeholder
 - `/login` auth placeholder
-- `/s?token=:token` branch QR survey placeholder
+- `/s?token=:token` branch QR survey
 - `/d?token=:token` device survey placeholder
-- `/gracias` survey completion placeholder
-- `/enlace-invalido` invalid survey link placeholder
+- `/gracias` public survey completion screen
+- `/enlace-invalido` public invalid survey link screen
 - `/app` restaurant admin and manager placeholder
 - `/platform-admin` platform admin placeholder
 

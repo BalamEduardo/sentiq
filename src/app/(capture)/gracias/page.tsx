@@ -1,10 +1,22 @@
+import { Suspense } from "react";
+
+import { ThankYouMessage } from "@/components/feedback/thank-you-message";
+
+import { SurveyThanksContent } from "./survey-thanks-content";
+
 export default function SurveyThanksPage() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col justify-center gap-4 px-6 py-16">
-      <h1 className="text-3xl font-semibold tracking-normal">Gracias</h1>
-      <p className="text-muted-foreground">
-        Placeholder para la pantalla posterior al envio de feedback.
-      </p>
+    <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-950">
+      <Suspense
+        fallback={
+          <ThankYouMessage
+            title="Gracias por compartir tu opinión."
+            className="shadow-sm"
+          />
+        }
+      >
+        <SurveyThanksContent />
+      </Suspense>
     </main>
   );
 }

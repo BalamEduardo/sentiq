@@ -2,6 +2,7 @@
 
 import { Send, Store } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { FormEvent, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -17,6 +18,7 @@ import { ThankYouMessage } from "@/components/feedback/thank-you-message";
 import { ErrorState } from "@/components/shared/error-state";
 import { LoadingState } from "@/components/shared/loading-state";
 import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/config/routes";
 import type { PublicSurveyConfig, RatingValue } from "@/types/domain";
 
 const INVALID_LINK_MESSAGE = "Este enlace no está disponible. Solicita apoyo al restaurante.";
@@ -60,6 +62,7 @@ const ratingFields = [
 ] as const;
 
 export function PublicQrSurvey({ token }: PublicQrSurveyProps) {
+  const router = useRouter();
   const [config, setConfig] = useState<PublicSurveyConfig | null>(null);
   const [isLoading, setIsLoading] = useState(Boolean(token));
   const [configFailed, setConfigFailed] = useState(false);
@@ -204,6 +207,7 @@ export function PublicQrSurvey({ token }: PublicQrSurveyProps) {
           : false,
       });
       setSubmitted(true);
+      router.push(`${ROUTES.THANK_YOU}?mode=qr`);
     } catch (error) {
       const status = error instanceof PublicSurveyFunctionError ? error.status : undefined;
       setErrors({
