@@ -1,21 +1,11 @@
-"use client";
-
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
 
-import { PublicQrSurvey } from "@/features/capture/components/public-qr-survey";
+import { BranchSurveySearchParams } from "../capture-survey-search-params";
 
 export default function BranchSurveyPage() {
   return (
     <Suspense fallback={null}>
-      <BranchSurveyPageContent />
+      <BranchSurveySearchParams />
     </Suspense>
   );
-}
-
-function BranchSurveyPageContent() {
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-
-  return <PublicQrSurvey token={token} />;
 }
