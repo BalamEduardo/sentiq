@@ -2,10 +2,10 @@
 
 Fuentes locales revisadas:
 
-- `supabase/migrations/0002_roles_and_profile_helpers.sql`
-- `supabase/migrations/0003_lock_down_role_helper_grants.sql`
-- `supabase/migrations/0004_enable_rls_and_policies.sql`
-- `supabase/migrations/0007_apply_public_rate_limit_function.sql`
+- `supabase/migrations/20260610234402_roles_and_profile_helpers.sql`
+- `supabase/migrations/20260610234514_lock_down_role_helper_grants.sql`
+- `supabase/migrations/20260610235639_enable_rls_and_policies.sql`
+- `supabase/migrations/20260611014124_apply_public_rate_limit_function.sql`
 
 Esta matriz describe lo verificable hoy en RLS. No reemplaza pruebas contra Supabase local; las consultas manuales estan en `docs/security/rls-test-queries.sql`.
 
